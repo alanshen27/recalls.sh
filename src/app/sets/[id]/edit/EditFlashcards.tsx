@@ -92,40 +92,58 @@ export default function EditFlashcards({ setId, initialFlashcards }: EditFlashca
 
       if (!response.ok) throw new Error('Failed to save flashcards');
 
-      // After successful save, fetch the latest flashcards to get the real IDs
-      const updatedResponse = await fetch(`/api/sets/${setId}/flashcards`);
-      if (!updatedResponse.ok) throw new Error('Failed to fetch updated flashcards');
-      const updatedFlashcards = await updatedResponse.json();
+      // Only fetch updated flashcards if there are new or deleted cards
+      const hasNewCards = cards.some(card => card.id.startsWith('temp_'));
+      const hasDeletedCards = lastState.some(lastCard => 
+        !cards.some(currentCard => currentCard.id === lastCard.id)
+      );
 
-      // Emit update event only for flashcards that have changed
-      updatedFlashcards.forEach((flashcard: Flashcard) => {
-        // Find the corresponding flashcard in our current state
-        const currentFlashcard = lastState.find(f => {
-          // If the flashcard has a temp ID, we need to match by content
-          // if (f.id.startsWith('temp_')) {
-          //   return f.term === flashcard.term && f.definition === flashcard.definition;
-          // }
-          // Otherwise match by ID
-          return f.id === flashcard.id;
+      if (hasNewCards || hasDeletedCards) {
+        // Only fetch if we need to get new IDs or confirm deletions
+        const updatedResponse = await fetch(`/api/sets/${setId}/flashcards`);
+        if (!updatedResponse.ok) throw new Error('Failed to fetch updated flashcards');
+        const updatedFlashcards = await updatedResponse.json();
+
+        // Update state only for new or deleted cards
+        setFlashcards(prev => {
+          const newState = [...prev];
+          // Update IDs for new cards
+          updatedFlashcards.forEach((updated: Flashcard) => {
+            const index = newState.findIndex(f => f.id.startsWith('temp_') && 
+              f.term === updated.term && f.definition === updated.definition);
+            if (index !== -1) {
+              newState[index] = updated;
+            }
+          });
+          // Remove deleted cards
+          return newState.filter(f => 
+            updatedFlashcards.some((updated: Flashcard) => updated.id === f.id)
+          );
         });
 
-        if (!currentFlashcard) {
-          // This is a new flashcard
-          console.log('Emitting new flashcard create:', flashcard);
-          emitFlashcardCreate(flashcard, 'system');
-        } else if (
-          flashcard.term !== currentFlashcard.term ||
-          flashcard.definition !== currentFlashcard.definition
-        ) {
-          // This flashcard has been modified
-          console.log('Emitting flashcard update:', flashcard);
-          emitFlashcardUpdate(flashcard, 'system');
-        }
-      });
+        // Emit events for new cards
+        updatedFlashcards.forEach((flashcard: Flashcard) => {
+          const currentFlashcard = lastState.find(f => f.id === flashcard.id);
+          if (!currentFlashcard) {
+            console.log('Emitting new flashcard create:', flashcard);
+            emitFlashcardCreate(flashcard, 'system');
+          }
+        });
+      } else {
+        // For existing cards, just emit updates for changed cards
+        cards.forEach((flashcard: Flashcard) => {
+          const currentFlashcard = lastState.find(f => f.id === flashcard.id);
+          if (currentFlashcard && (
+            flashcard.term !== currentFlashcard.term ||
+            flashcard.definition !== currentFlashcard.definition
+          )) {
+            console.log('Emitting flashcard update:', flashcard);
+            emitFlashcardUpdate(flashcard, 'system');
+          }
+        });
+      }
 
-      setLastState(updatedFlashcards);
-      // Update local state with the latest flashcards
-      setFlashcards(updatedFlashcards);
+      setLastState(cards);
       toast.success('Flashcards saved successfully');
     } catch (error) {
       console.error('Error saving flashcards:', error);
