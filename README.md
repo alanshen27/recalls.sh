@@ -62,10 +62,13 @@ Recall is a modern web application built with Next.js that helps users create, s
    ```
    # Database
    DATABASE_URL="postgresql://postgres:your-password@db.qfhevbpptypgtibdhtpt.supabase.co:5432/postgres"
+   DIRECT_URL="postgresql://postgres:your-password@db.qfhevbpptypgtibdhtpt.supabase.co:5432/postgres"
 
    # Authentication
    NEXTAUTH_SECRET="your-secret-key"
    NEXTAUTH_URL="http://localhost:3000"
+   GOOGLE_CLIENT_ID="your-google-client-id"
+   GOOGLE_CLIENT_SECRET="your-google-client-secret"
    ```
 
 4. **Initialize the database**
