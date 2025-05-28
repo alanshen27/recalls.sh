@@ -4,7 +4,7 @@ import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Flashcard } from '@prisma/client';
 import { Button } from '@/components/ui/button';
-import { TestModal } from '@/components/ui/study-modal';
+import { StudyModal } from '@/components/ui/study-modal';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
@@ -17,9 +17,17 @@ interface CardPerformance {
   userAnswer: string;
   isMultipleChoice: boolean;
   selectedOption?: string;
+  testTerm: boolean;
 }
 
-export default function TestPage({ params }: { params: Promise<{ id: string }> }) {
+interface StudyOptions {
+  count: number;
+  mode: 'term' | 'definition' | 'both';
+  shuffle: boolean;
+  repeat: boolean;
+}
+
+export default function StudyPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { id } = use(params);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
@@ -31,6 +39,12 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [multipleChoiceOptions, setMultipleChoiceOptions] = useState<string[]>([]);
+  const [studyOptions, setStudyOptions] = useState<StudyOptions>({
+    count: 10,
+    mode: 'both',
+    shuffle: true,
+    repeat: true
+  });
   
   useEffect(() => {
     const fetchFlashcards = async () => {
@@ -49,9 +63,9 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
     fetchFlashcards();
   }, [id]);
 
-  const generateMultipleChoiceOptions = (correctAnswer: string, allDefinitions: string[]) => {
+  const generateMultipleChoiceOptions = (correctAnswer: string, allAnswers: string[]) => {
     // Get 3 random incorrect answers
-    const incorrectOptions = allDefinitions
+    const incorrectOptions = allAnswers
       .filter(def => def !== correctAnswer)
       .sort(() => Math.random() - 0.5)
       .slice(0, 3);
@@ -63,26 +77,40 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
     return options;
   };
 
-  const handleStartTest = (count: number) => {
-    const shuffled = [...flashcards].sort(() => Math.random() - 0.5);
-    const selectedCards = shuffled.slice(0, count);
-    const allDefinitions = flashcards.map(card => card.definition!).filter(Boolean);
+  const handleStartStudy = (count: number, options: StudyOptions) => {
+    setStudyOptions(options);
+    let selectedCards = [...flashcards];
+    if (options.shuffle) {
+      selectedCards = selectedCards.sort(() => Math.random() - 0.5);
+    }
+    selectedCards = selectedCards.slice(0, count);
+    
+    const allAnswers = flashcards.map(card => 
+      options.mode === 'term' ? card.definition! : card.term!
+    ).filter(Boolean);
     
     setStudyCards(selectedCards.map(card => {
       const isMultipleChoice = Math.random() < 0.5; // 50% chance for multiple choice
+      const testTerm = options.mode === 'both' 
+        ? Math.random() < 0.5 
+        : options.mode === 'term';
+      
       return {
         card,
         attempts: 0,
         correct: 0,
         userAnswer: '',
-        isMultipleChoice
+        isMultipleChoice,
+        testTerm
       };
     }));
     
     // Generate multiple choice options for the first card
     const firstCard = selectedCards[0];
-    
-    setMultipleChoiceOptions(generateMultipleChoiceOptions(firstCard.definition!, allDefinitions));
+    const firstCardAnswer = studyCards[0]?.testTerm 
+      ? firstCard.definition! 
+      : firstCard.term!;
+    setMultipleChoiceOptions(generateMultipleChoiceOptions(firstCardAnswer, allAnswers));
     
     setCurrentIndex(0);
     setUserAnswer('');
@@ -94,8 +122,10 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
     const currentCard = studyCards[currentIndex];
     const answerToCheck = selectedAnswer || userAnswer;
     const normalizedUserAnswer = answerToCheck.trim().toLowerCase();
-    const normalizedCorrectAnswer = currentCard.card.definition!.trim().toLowerCase();
-    const isAnswerCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
+    const correctAnswer = currentCard.testTerm
+      ? currentCard.card.definition!.trim().toLowerCase()
+      : currentCard.card.term!.trim().toLowerCase();
+    const isAnswerCorrect = normalizedUserAnswer === correctAnswer;
 
     setStudyCards(prev => {
       const newCards = [...prev];
@@ -142,8 +172,8 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
     // Move to next card or back to the beginning
     if (currentIndex < studyCards.length - 1) {
       setCurrentIndex(prev => prev + 1);
-    } else {
-      // If we've gone through all cards, start over with the ones that haven't been answered correctly
+    } else if (studyOptions.repeat) {
+      // If we've gone through all cards and repeat is enabled, start over with the ones that haven't been answered correctly
       const remainingCards = studyCards.filter(card => card.correct === 0);
       if (remainingCards.length > 0) {
         setCurrentIndex(studyCards.indexOf(remainingCards[0]));
@@ -153,8 +183,13 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
     // Generate multiple choice options for the next card if it's multiple choice
     const nextCard = studyCards[currentIndex + 1];
     if (nextCard?.isMultipleChoice) {
-      const allDefinitions = flashcards.map(card => card.definition!).filter(Boolean);
-      setMultipleChoiceOptions(generateMultipleChoiceOptions(nextCard.card.definition!, allDefinitions));
+      const allAnswers = flashcards.map(card => 
+        studyOptions.mode === 'term' ? card.definition! : card.term!
+      ).filter(Boolean);
+      const nextCardAnswer = studyCards[currentIndex + 1]?.testTerm 
+        ? studyCards[currentIndex + 1].card.definition! 
+        : studyCards[currentIndex + 1].card.term!;
+      setMultipleChoiceOptions(generateMultipleChoiceOptions(nextCardAnswer, allAnswers));
     }
 
     setUserAnswer('');
@@ -194,10 +229,10 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <TestModal
+      <StudyModal
         isOpen={isModalOpen}
         onClose={() => router.push(`/sets/${id}`)}
-        onStart={handleStartTest}
+        onStart={handleStartStudy}
         maxCards={flashcards.length}
       />
 
@@ -220,15 +255,25 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
             <CardContent className="pt-6">
               <div className="space-y-6">
                 <p className="text-lg font-medium">
-                  {currentCard.card.term}
+                  {studyCards[currentIndex].testTerm 
+                    ? studyCards[currentIndex].card.definition 
+                    : studyCards[currentIndex].card.term}
                 </p>
+                <div className="text-sm text-muted-foreground">
+                  {studyCards[currentIndex].testTerm 
+                    ? 'Enter the term' 
+                    : 'Enter the definition'}
+                </div>
                 <div className="space-y-4">
-                  {currentCard.isMultipleChoice ? (
+                  {studyCards[currentIndex].isMultipleChoice ? (
                     <div className="grid grid-cols-2 gap-4">
                       {multipleChoiceOptions.map((option, index) => {
                         const isSelected = userAnswer === option;
-                        const isCorrectAnswer = option === currentCard.card.definition;
-                        const showFeedback = currentCard.selectedOption === option;
+                        const correctAnswer = studyCards[currentIndex].testTerm 
+                          ? studyCards[currentIndex].card.definition 
+                          : studyCards[currentIndex].card.term;
+                        const isCorrectAnswer = option === correctAnswer;
+                        const showFeedback = studyCards[currentIndex].selectedOption === option;
                         
                         const buttonVariant = "outline" as const;
                         let buttonClassName = "h-auto py-4 px-4 text-base whitespace-normal text-left";
@@ -266,18 +311,22 @@ export default function TestPage({ params }: { params: Promise<{ id: string }> }
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Type your answer..."
+                      placeholder={studyCards[currentIndex].testTerm 
+                        ? "Type the term..." 
+                        : "Type the definition..."}
                       disabled={showFeedback}
                       className="text-base"
                     />
                   )}
-                  {showFeedback && !currentCard.isMultipleChoice && (
+                  {showFeedback && !studyCards[currentIndex].isMultipleChoice && (
                     <div className={`p-4 rounded-md ${isCorrect ? 'bg-green-50 dark:bg-green-950' : 'bg-red-50 dark:bg-red-950'}`}>
                       <p className="font-medium mb-2">
                         {isCorrect ? 'Correct!' : 'Incorrect'}
                       </p>
                       <p className="text-muted-foreground">
-                        Correct answer: {currentCard.card.definition}
+                        Correct answer: {studyCards[currentIndex].testTerm 
+                          ? studyCards[currentIndex].card.term 
+                          : studyCards[currentIndex].card.definition}
                       </p>
                     </div>
                   )}

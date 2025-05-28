@@ -70,14 +70,27 @@ export async function POST(
     }
 
     // Create the share
-    const share = await prisma.sharedSet.create({
+    await prisma.sharedSet.create({
       data: {
         flashcardSetId: id,
         sharedWithId: userToShareWith.id,
       },
     });
 
-    return NextResponse.json(share);
+    // Create a notification for the user being shared with
+    await prisma.notification.create({
+      data: {
+        userId: userToShareWith.id,
+        type: "share",
+        title: "New Shared Set",
+        message: `${session.user.name || "Someone"} shared "${set.title}" with you`,
+      },
+    });
+
+    return NextResponse.json(
+      { message: "Set shared successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error('Error sharing set:', error);
     return NextResponse.json(

@@ -10,6 +10,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Recall - Flashcard Learning",
   description: "Create and study flashcards efficiently",
+  icons: "/logo-ico.png"
 };
 
 export default function RootLayout({
@@ -23,7 +24,7 @@ export default function RootLayout({
         <Providers>
           <div className="min-h-screen">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main>
               {children}
             </main>
           </div>

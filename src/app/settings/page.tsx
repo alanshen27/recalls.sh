@@ -9,7 +9,7 @@ export default function SettingsPage() {
   const router = useRouter();
 
   return (
-    <div className="container max-w-4xl py-8">
+    <div className="container max-w-4xl py-8 mx-auto">
       <Button
         variant="ghost"
         className="mb-8"
@@ -43,38 +43,7 @@ export default function SettingsPage() {
                     Select your preferred theme.
                   </p>
                 </div>
-                <Button variant="outline">System</Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Study Preferences</CardTitle>
-            <CardDescription>
-              Customize your study experience.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Default Study Mode</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Choose how you want to study by default.
-                  </p>
-                </div>
-                <Button variant="outline">Flashcards</Button>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-medium">Auto-advance</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically move to the next card after viewing.
-                  </p>
-                </div>
-                <Button variant="outline">Off</Button>
+                <Button variant="outline" disabled>System</Button>
               </div>
             </div>
           </CardContent>
@@ -96,7 +65,7 @@ export default function SettingsPage() {
                     Download all your flashcard sets.
                   </p>
                 </div>
-                <Button variant="outline">Export</Button>
+                <Button variant="outline" disabled>Export</Button>
               </div>
               <div className="flex items-center justify-between">
                 <div>
