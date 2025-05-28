@@ -6,12 +6,15 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { Loading } from '@/components/ui/loading';
 
 export default function SignIn() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   
   return (
+    <Suspense fallback={<div className="flex items-center justify-center h-screen"><Loading /></div>}>
     <div className="min-h-screen flex items-center justify-center">
       <Card className="w-[350px]">
         <CardHeader>
@@ -28,5 +31,6 @@ export default function SignIn() {
         </CardContent>
       </Card>
     </div>
+    </Suspense>
   );
 } 
