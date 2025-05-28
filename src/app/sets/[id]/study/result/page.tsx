@@ -11,12 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-interface ResultPageProps {
-  params: {
-    id: string;
-  };
-}
+import { use } from 'react';
 
 interface CardResult {
   term: string;
@@ -26,7 +21,8 @@ interface CardResult {
   accuracy: number;
 }
 
-export default function ResultPage({ params }: ResultPageProps) {
+export default function ResultPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
   const results: CardResult[] = JSON.parse(decodeURIComponent(searchParams.get('results') || '[]'));
@@ -78,10 +74,10 @@ export default function ResultPage({ params }: ResultPageProps) {
         </div>
 
         <div className="flex justify-center gap-4">
-          <Button variant="outline" onClick={() => router.push(`/sets/${params.id}/study`)}>
+          <Button variant="outline" onClick={() => router.push(`/sets/${id}/study`)}>
             Study Again
           </Button>
-          <Button onClick={() => router.push(`/sets/${params.id}`)}>
+          <Button onClick={() => router.push(`/sets/${id}`)}>
             Back to Set
           </Button>
         </div>

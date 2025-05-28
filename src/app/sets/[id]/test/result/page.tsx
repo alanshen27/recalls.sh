@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ArrowLeft, CheckCircle2, XCircle } from 'lucide-react';
+import { use } from 'react';
 
 interface TestResult {
   term: string | null;
@@ -13,7 +14,8 @@ interface TestResult {
   isCorrect: boolean;
 }
 
-export default function TestResultPage({ params }: { params: { id: string } }) {
+export default function TestResultPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
   const results: TestResult[] = JSON.parse(decodeURIComponent(searchParams.get('results') || '[]'));
@@ -88,12 +90,12 @@ export default function TestResultPage({ params }: { params: { id: string } }) {
         <div className="flex justify-center gap-4">
           <Button
             variant="outline"
-            onClick={() => router.push(`/sets/${params.id}`)}
+            onClick={() => router.push(`/sets/${id}`)}
           >
             Back to Set
           </Button>
           <Button
-            onClick={() => router.push(`/sets/${params.id}/test`)}
+            onClick={() => router.push(`/sets/${id}/test`)}
           >
             Try Again
           </Button>

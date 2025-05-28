@@ -10,12 +10,13 @@ interface Flashcard {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const flashcards = await prisma.flashcard.findMany({
       where: {
-        flashcardSetId: params.id,
+        flashcardSetId: id,
       },
       orderBy: {
         createdAt: 'asc',
@@ -33,9 +34,10 @@ export async function GET(
 }
 
 export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { term, definition } = await request.json();
 
@@ -43,7 +45,7 @@ export async function POST(
       data: {
         term: term?.trim() || null,
         definition: definition?.trim() || null,
-        flashcardSetId: params.id,
+        flashcardSetId: id,
       },
     });
 
@@ -58,16 +60,17 @@ export async function POST(
 }
 
 export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const flashcards = await request.json() as Flashcard[];
 
     // Get existing flashcards
     const existingFlashcards = await prisma.flashcard.findMany({
       where: {
-        flashcardSetId: params.id,
+        flashcardSetId: id,
       },
     });
 
@@ -92,7 +95,7 @@ export async function PUT(
         data: {
           term: card.term?.trim() || null,
           definition: card.definition?.trim() || null,
-          flashcardSetId: params.id,
+          flashcardSetId: id,
         },
       })
     );
@@ -118,7 +121,7 @@ export async function PUT(
     // Return all flashcards in the set
     const result = await prisma.flashcard.findMany({
       where: {
-        flashcardSetId: params.id,
+        flashcardSetId: id,
       },
       orderBy: {
         createdAt: 'asc',
@@ -136,11 +139,11 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const id = params.id;
     await prisma.flashcard.delete({
       where: {
         id: id,

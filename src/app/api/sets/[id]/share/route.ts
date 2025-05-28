@@ -5,8 +5,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -27,7 +28,7 @@ export async function POST(
     // Check if the set exists and belongs to the current user
     const set = await prisma.flashcardSet.findFirst({
       where: {
-        id: params.id,
+        id: id,
         ownerId: session.user.id,
       },
     });
@@ -55,7 +56,7 @@ export async function POST(
     const existingShare = await prisma.sharedSet.findUnique({
       where: {
         flashcardSetId_sharedWithId: {
-          flashcardSetId: params.id,
+          flashcardSetId: id,
           sharedWithId: userToShareWith.id,
         },
       },
@@ -71,7 +72,7 @@ export async function POST(
     // Create the share
     const share = await prisma.sharedSet.create({
       data: {
-        flashcardSetId: params.id,
+        flashcardSetId: id,
         sharedWithId: userToShareWith.id,
       },
     });
@@ -87,9 +88,10 @@ export async function POST(
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } }
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -105,7 +107,7 @@ export async function DELETE(
 
     // Check if the set exists and belongs to the current user
     const set = await prisma.flashcardSet.findUnique({
-      where: { id: params.id },
+      where: { id: id },
       select: { ownerId: true },
     });
 
@@ -121,7 +123,7 @@ export async function DELETE(
     await prisma.sharedSet.delete({
       where: {
         flashcardSetId_sharedWithId: {
-          flashcardSetId: params.id,
+          flashcardSetId: id,
           sharedWithId: userId,
         },
       },

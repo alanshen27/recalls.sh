@@ -10,10 +10,6 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Loading } from "@/components/ui/loading";
 
-interface TestPageProps {
-  params: Promise<{ id: string }>;
-}
-
 interface CardPerformance {
   card: Flashcard;
   attempts: number;
@@ -23,8 +19,9 @@ interface CardPerformance {
   selectedOption?: string;
 }
 
-export default function TestPage({ params }: TestPageProps) {
+export default function TestPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
+  const { id } = use(params);
   const [flashcards, setFlashcards] = useState<Flashcard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(true);
@@ -34,8 +31,6 @@ export default function TestPage({ params }: TestPageProps) {
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [multipleChoiceOptions, setMultipleChoiceOptions] = useState<string[]>([]);
-
-  const { id } = use(params);
   
   useEffect(() => {
     const fetchFlashcards = async () => {
@@ -71,7 +66,7 @@ export default function TestPage({ params }: TestPageProps) {
   const handleStartTest = (count: number) => {
     const shuffled = [...flashcards].sort(() => Math.random() - 0.5);
     const selectedCards = shuffled.slice(0, count);
-    const allDefinitions = flashcards.map(card => card.definition);
+    const allDefinitions = flashcards.map(card => card.definition!).filter(Boolean);
     
     setStudyCards(selectedCards.map(card => {
       const isMultipleChoice = Math.random() < 0.5; // 50% chance for multiple choice
@@ -87,7 +82,7 @@ export default function TestPage({ params }: TestPageProps) {
     // Generate multiple choice options for the first card
     const firstCard = selectedCards[0];
     
-    setMultipleChoiceOptions(generateMultipleChoiceOptions(firstCard.definition, allDefinitions));
+    setMultipleChoiceOptions(generateMultipleChoiceOptions(firstCard.definition!, allDefinitions));
     
     setCurrentIndex(0);
     setUserAnswer('');
@@ -99,7 +94,7 @@ export default function TestPage({ params }: TestPageProps) {
     const currentCard = studyCards[currentIndex];
     const answerToCheck = selectedAnswer || userAnswer;
     const normalizedUserAnswer = answerToCheck.trim().toLowerCase();
-    const normalizedCorrectAnswer = currentCard.card.definition.trim().toLowerCase();
+    const normalizedCorrectAnswer = currentCard.card.definition!.trim().toLowerCase();
     const isAnswerCorrect = normalizedUserAnswer === normalizedCorrectAnswer;
 
     setStudyCards(prev => {
@@ -158,8 +153,8 @@ export default function TestPage({ params }: TestPageProps) {
     // Generate multiple choice options for the next card if it's multiple choice
     const nextCard = studyCards[currentIndex + 1];
     if (nextCard?.isMultipleChoice) {
-      const allDefinitions = flashcards.map(card => card.definition);
-      setMultipleChoiceOptions(generateMultipleChoiceOptions(nextCard.card.definition, allDefinitions));
+      const allDefinitions = flashcards.map(card => card.definition!).filter(Boolean);
+      setMultipleChoiceOptions(generateMultipleChoiceOptions(nextCard.card.definition!, allDefinitions));
     }
 
     setUserAnswer('');

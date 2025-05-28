@@ -15,8 +15,9 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
     const { flashcards } = await request.json();
 
@@ -66,7 +67,7 @@ export async function POST(
       data: parsedFlashcards.map((card: { term?: string; definition?: string }) => ({
         term: card.term?.trim() || null,
         definition: card.definition?.trim() || null,
-        flashcardSetId: params.id,
+        flashcardSetId: id,
       })),
     });
 
