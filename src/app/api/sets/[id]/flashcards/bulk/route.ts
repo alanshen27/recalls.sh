@@ -1,9 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 /**
  * Bulk create flashcards for a set
- * @param {Request} request - The incoming HTTP request containing flashcards data
+ * @param {NextRequest} request - The incoming HTTP request containing flashcards data
  * @param {Object} params - The route parameters
  * @param {string} params.id - The ID of the flashcard set
  * @param {Object} request.body - The request body
@@ -14,7 +14,7 @@ import { prisma } from '@/lib/prisma';
  */
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
