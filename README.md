@@ -41,7 +41,7 @@ Recall is a modern web application built with Next.js that helps users create, s
 - **Backend**
   - Next.js API Routes
   - Prisma ORM
-  - SQLite Database
+  - PostgreSQL Database (Supabase)
   - NextAuth.js for Authentication
 
 ## Getting Started
@@ -60,7 +60,10 @@ Recall is a modern web application built with Next.js that helps users create, s
 3. **Set up environment variables**
    Create a `.env` file in the root directory with the following variables:
    ```
-   DATABASE_URL="file:./dev.db"
+   # Database
+   DATABASE_URL="postgresql://postgres:your-password@db.qfhevbpptypgtibdhtpt.supabase.co:5432/postgres"
+
+   # Authentication
    NEXTAUTH_SECRET="your-secret-key"
    NEXTAUTH_URL="http://localhost:3000"
    ```
