@@ -1,36 +1,112 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recall - Interactive Flashcard Learning Platform
+
+Recall is a modern web application built with Next.js that helps users create, study, and share flashcard sets for effective learning.
+
+## Features
+
+- **Create and Manage Flashcard Sets**
+  - Create sets with custom titles and descriptions
+  - Add, edit, and delete flashcards
+  - Organize sets with labels
+  - Track creation and update times
+
+- **Study Modes**
+  - Interactive study mode with card flipping
+  - Multiple choice and fill-in-the-blank test mode
+  - Progress tracking and performance statistics
+  - Keyboard shortcuts for efficient navigation
+
+- **Sharing and Collaboration**
+  - Share flashcard sets with other users
+  - View sets shared with you
+  - Manage shared access permissions
+  - Real-time updates for shared content
+
+- **User Experience**
+  - Clean, modern interface
+  - Responsive design for all devices
+  - Smooth animations and transitions
+  - Loading states and error handling
+
+## Tech Stack
+
+- **Frontend**
+  - Next.js 14 (App Router)
+  - React
+  - TypeScript
+  - Tailwind CSS
+  - Radix UI Components
+  - Lucide Icons
+
+- **Backend**
+  - Next.js API Routes
+  - Prisma ORM
+  - SQLite Database
+  - NextAuth.js for Authentication
 
 ## Getting Started
 
-First, run the development server:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yourusername/recall.git
+   cd recall
+   ```
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. **Set up environment variables**
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   DATABASE_URL="file:./dev.db"
+   NEXTAUTH_SECRET="your-secret-key"
+   NEXTAUTH_URL="http://localhost:3000"
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+4. **Initialize the database**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-## Learn More
+6. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-To learn more about Next.js, take a look at the following resources:
+## Usage
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Creating a Set**
+   - Click "New Set" to create a flashcard set
+   - Add a title and description
+   - Add flashcards with terms and definitions
+   - Add labels for organization
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. **Studying**
+   - Open a set and click "Study"
+   - Use spacebar to flip cards
+   - Use arrow keys to navigate
+   - Track your progress
 
-## Deploy on Vercel
+3. **Testing**
+   - Open a set and click "Test"
+   - Choose the number of cards to test
+   - Answer multiple choice or fill-in-the-blank questions
+   - Review your results
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+4. **Sharing**
+   - Open a set and click the share icon
+   - Enter the email of the user to share with
+   - Manage shared access from the set page
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
